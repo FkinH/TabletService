@@ -11,10 +11,24 @@ import java.nio.channels.SocketChannel;
  */
 public class TabletClient {
 
+    public static final String HOST = "localhost";
+
+    public static final int PORT = 2333;
+
+    public static TabletClient client;
+
     private InetSocketAddress inetSocketAddress;
+
     private SocketChannel socketChannel;
 
-    public TabletClient(String hostname, int port) {
+    public synchronized static TabletClient getInstance(){
+        if(client == null){
+            client = new TabletClient(HOST, PORT);
+        }
+        return client;
+    }
+
+    private TabletClient(String hostname, int port) {
         inetSocketAddress = new InetSocketAddress(hostname, port);
     }
 
@@ -23,6 +37,7 @@ public class TabletClient {
             socketChannel = SocketChannel.open(inetSocketAddress);
             socketChannel.configureBlocking(false);
             socketChannel.write(ByteBuffer.wrap(requestData.getBytes()));
+            //read response
 //            ByteBuffer byteBuffer = ByteBuffer.allocate(512);
 //            while (true) {
 //                byteBuffer.clear();
@@ -48,15 +63,12 @@ public class TabletClient {
     }
 
     public static void main(String[] args) {
-        int a = 1;
-        String hostname = "localhost";
         String requestData = "Actions speak louder than words!";
-        int port = 2333;
-        TabletClient client = new TabletClient(hostname, port);
+        TabletClient client = new TabletClient(HOST, PORT);
         while (true){
             client.send(requestData);
             try {
-                Thread.sleep(1);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

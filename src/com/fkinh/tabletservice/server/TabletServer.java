@@ -14,9 +14,18 @@ import java.util.Iterator;
  */
 public class TabletServer {
 
-    public static int PORT = 2333;
+    public static final int PORT = 2333;
 
-    public static void main(String[] args) throws Exception {
+    public static TabletServer server;
+
+    public synchronized static TabletServer getInstance(){
+        if(server == null){
+            server = new TabletServer();
+        }
+        return server;
+    }
+
+    public void start() throws Exception {
         Selector selector = null;
         ServerSocketChannel server = null;
         try {
@@ -30,7 +39,7 @@ public class TabletServer {
                 for (Iterator<SelectionKey> i = selector.selectedKeys().iterator(); i.hasNext(); ) {
                     SelectionKey key = i.next();
                     i.remove();
-                    if (key.isValid()) {
+                    if (!key.isValid()) {
                         continue;
                     }
                     if (key.isAcceptable()) {
@@ -52,7 +61,7 @@ public class TabletServer {
                         byteBuffer.compact();
                     } else if (key.isReadable()) {
                         System.out.println("readable");
-                        ByteBuffer byteBuffer = ByteBuffer.allocate(512);
+                        ByteBuffer byteBuffer = ByteBuffer.allocate(64);
                         SocketChannel socketChannel = (SocketChannel)key.channel();
                         while(true) {
                             int readBytes = socketChannel.read(byteBuffer);
@@ -80,6 +89,15 @@ public class TabletServer {
             } catch (Exception e) {
                 // do nothing - server failed
             }
+        }
+    }
+
+    public static void main(String[] args){
+        TabletServer server = TabletServer.getInstance();
+        try {
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
